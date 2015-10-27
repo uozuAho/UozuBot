@@ -21,3 +21,7 @@ build/
 
 # BWAPI files
 bwapi-data
+
+# BWMirror Files (managed by gradle)
+*.dll
+bwmirror*.jar

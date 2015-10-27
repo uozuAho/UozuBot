@@ -2,8 +2,20 @@ group 'aho.uozu'
 version '0.1'
 
 apply plugin: 'java'
+apply plugin: 'application'
 
 sourceCompatibility = 1.7
+
+mainClassName = 'aho.uozu.uozubot.UozuBotManager'
+
+// get bwmirror library
+task('getBwMirror') {
+    File f = file('lib/bwmirror_v2_4.jar')
+    if (!f.exists()) {
+        new URL('https://github.com/vjurenka/BWMirror/blob/master/dist/bwmirror_v2_4.jar?raw=true')
+                .withInputStream{ i -> f.withOutputStream{ it << i }}
+    }
+}
 
 dependencies {
     compile fileTree(dir: 'lib', include: "*.jar")
