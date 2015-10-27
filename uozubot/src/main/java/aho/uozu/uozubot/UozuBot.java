@@ -1,5 +1,7 @@
 package aho.uozu.uozubot;
 
+import aho.uozu.uozubot.strategy.Strategy;
+import aho.uozu.uozubot.strategy.StrategyManager;
 import aho.uozu.uozubot.utils.GameState;
 import bwapi.*;
 import bwta.BWTA;
@@ -15,6 +17,8 @@ public class UozuBot extends DefaultBWListener {
     private Game game;
     private Player self;
     private GameState gameState;
+    private StrategyManager stratMan;
+
     private static final Logger log = LoggerFactory.getLogger(UozuBot.class);
 
     private Set<Unit> miningTeam = new HashSet<>();
@@ -32,6 +36,7 @@ public class UozuBot extends DefaultBWListener {
         game = mirror.getGame();
         self = game.self();
         gameState = GameState.getInstance(game, self);
+        stratMan = StrategyManager.getInstance(game);
 
         //Use BWTA to analyze map
         //This may take a few minutes if the map is processed first time!
@@ -98,16 +103,17 @@ public class UozuBot extends DefaultBWListener {
             }
         }
 
+
+
         // command larva
+        // TODO: Make a unitMap type, get() can return empty sets
         Set<Unit> larva = unitMap.get(UnitType.Zerg_Larva);
         if (larva != null) {
             for (Unit u : larva) {
-                if (spareSupply() <= 2 && !isOverlordUnderConstruction()) {
-                    u.train(UnitType.Zerg_Overlord);
-                }
-                else {
-                    u.train(UnitType.Zerg_Drone);
-                }
+                UnitType nextBuildUnit = stratMan.getCurrentStrategy().getNextUnitToBuild();
+                // TODO: probably not a good idea to tell larva to build buildings,
+                // but BWAPI doesn't seem to mind at the moment
+                u.train(nextBuildUnit);
             }
         }
 
@@ -215,17 +221,6 @@ public class UozuBot extends DefaultBWListener {
             sortedTypes.add(nameTypeMap.get(name));
         }
         return sortedTypes;
-    }
-
-    private int spareSupply() {
-        return self.supplyTotal() - self.supplyUsed();
-    }
-
-    private boolean isOverlordUnderConstruction() {
-        Set<Unit> overlords = gameState.getUnitsUnderConstruction().get(UnitType.Zerg_Overlord);
-        if (overlords == null)
-            return false;
-        return overlords.size() > 0;
     }
 
 }
